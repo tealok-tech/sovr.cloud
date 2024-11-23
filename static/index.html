@@ -1,5 +1,13 @@
 <html>
 <head>
 <script src="/static/js/index.js"></script>
-<h1>Hey there</h1>
+</head>
+<body>
+	<h1>Login to Sovr.io</h1>
+	<form action="/login" method="POST">
+		<label for="username">Username</label>
+		<input type="text" name="username" id="username" autocomplete="username webauthn" required>
+		<button type="submit">Next</button>
+	</form>
+</body>
 </html>
