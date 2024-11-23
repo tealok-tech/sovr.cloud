@@ -4,16 +4,18 @@ This is the whole system for sovr.io, which includes various tools for self-host
 
 ## Build
 
+Install ninja. `nix-shell` should do this for you on NixOS.
+
 ```
-go build main.go
+ninja
 ```
 
 ## Run
 
 ```
-./main
+./out/sovr-server
 ```
 
 ## Website
 
-Should be running at localhost:8080/hello and localhost:8080/ping
+Should be running at [localhost:8080](localhost:8080/)
