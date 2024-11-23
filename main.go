@@ -13,6 +13,8 @@ type User struct {
 
 func (u User) AddCredential(c *webauthn.Credential) {
 }
+func (u User) UpdateCredential(c *webauthn.Credential) {
+}
 func (u User) WebAuthnID() []byte {
 	return make([]byte, 0)
 }
@@ -34,6 +36,8 @@ func (d *Datastore) GetUser() User {
 }
 func (d *Datastore) GetSession() webauthn.SessionData {
 	return webauthn.SessionData{}
+}
+func (d *Datastore) SaveSession(u *webauthn.SessionData) {
 }
 func (d *Datastore) SaveUser(u User) {
 }
@@ -75,6 +79,47 @@ func FinishRegistration(w http.ResponseWriter, r *http.Request) {
 	JSONResponse(w, "Registration Success", http.StatusOK) // Handle next steps
 }*/
 
+/*
+	func BeginLogin(w http.ResponseWriter, r *http.Request) {
+		user := datastore.GetUser() // Find the user
+
+		options, session, err := webAuthn.BeginLogin(user)
+		if err != nil {
+			// Handle Error and return.
+
+			return
+		}
+
+		// store the session values
+		datastore.SaveSession(session)
+
+		JSONResponse(w, options, http.StatusOK) // return the options generated
+		// options.publicKey contain our registration options
+	}
+
+	func FinishLogin(w http.ResponseWriter, r *http.Request) {
+		user := datastore.GetUser() // Get the user
+
+		// Get the session data stored from the function above
+		session := datastore.GetSession()
+
+		credential, err := webAuthn.FinishLogin(user, session, r)
+		if err != nil {
+			// Handle Error and return.
+
+			return
+		}
+
+		// Handle credential.Authenticator.CloneWarning
+
+		// If login was successful, update the credential object
+		// Pseudocode to update the user credential.
+		user.UpdateCredential(credential)
+		datastore.SaveUser(user)
+
+		JSONResponse(w, "Login Success", http.StatusOK)
+	}
+*/
 func main() {
 	wconfig := &webauthn.Config{
 		RPDisplayName: "sovr.io",                         // Display Name for your site
@@ -98,6 +143,46 @@ func main() {
 	})
 	r.GET("/hello", getHello)
 	r.Static("/static", "./static")
+	r.GET("/login/begin", func(c *gin.Context) {
+		user := datastore.GetUser() // Find the user
+
+		options, session, err := webAuthn.BeginLogin(user)
+		if err != nil {
+			// Handle Error and return.
+			fmt.Println("Error on login begin", err)
+			return
+		}
+
+		// store the session values
+		datastore.SaveSession(session)
+
+		//JSONResponse(w, options, http.StatusOK) // return the options generated
+		c.JSON(200, options)
+		// options.publicKey contain our registration options
+	})
+	r.GET("/login/finish", func(c *gin.Context) {
+		user := datastore.GetUser() // Get the user
+
+		// Get the session data stored from the function above
+		session := datastore.GetSession()
+
+		credential, err := webAuthn.FinishLogin(user, session, c.Request)
+		if err != nil {
+			// Handle Error and return.
+			fmt.Println("Error on login finish", err)
+			return
+		}
+
+		// Handle credential.Authenticator.CloneWarning
+
+		// If login was successful, update the credential object
+		// Pseudocode to update the user credential.
+		user.UpdateCredential(credential)
+		datastore.SaveUser(user)
+
+		//JSONResponse(w, "Login Success", http.StatusOK)
+		c.JSON(200, "login success")
+	})
 	r.GET("/register/begin", func(c *gin.Context) {
 		user := datastore.GetUser() // Find or create the new user
 		options, session, err := webAuthn.BeginRegistration(user)
