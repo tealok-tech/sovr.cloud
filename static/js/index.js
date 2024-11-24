@@ -10,12 +10,19 @@ function showRegisterForm() {
 	console.log("Showing registration form");
 	document.getElementById("login").style.display = "none";
 	document.getElementById("register").style.display = "block";
+	const login_username = document.querySelector("#login input[name='username']");
+	const register_username = document.querySelector("#register input[name='username']");
+	register_username.value = login_username.value;
+}
+
+function getLoginUsername() {
+	var username_element = document.querySelector("#login input[name='username']");
+	return username_element.value;
 }
 
 async function onLoginNext(e) {
 	e.preventDefault();
-	var username_element = document.querySelector("#login input[name='username']");
-	const username = username_element.value;
+	const username = getLoginUsername()
 	const url = "/login/begin?username=" + encodeURIComponent(username);
 	const response = await fetch(url);
 	if (response.status == 400) {
