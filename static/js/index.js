@@ -4,8 +4,11 @@ document.addEventListener("DOMContentLoaded", function(event) {
 	form.addEventListener("submit", onLoginSubmit, true);
 });
 
-function onLoginSubmit(e) {
+async function onLoginSubmit(e) {
 	e.preventDefault();
-	console.log("hey");
+	const url = "/login/begin";
+	const response = await fetch(url);
+	const json = await response.json()
+	console.log(json);
 }
 
