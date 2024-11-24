@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/go-webauthn/webauthn/webauthn"
@@ -31,8 +32,8 @@ func (u User) WebAuthnCredentials() []webauthn.Credential {
 type Datastore struct {
 }
 
-func (d *Datastore) GetUser() User {
-	return User{}
+func (d *Datastore) GetUser(username string) (User, error) {
+	return User{}, errors.New("No such user")
 }
 func (d *Datastore) GetSession() webauthn.SessionData {
 	return webauthn.SessionData{}
@@ -144,7 +145,14 @@ func main() {
 	r.GET("/hello", getHello)
 	r.Static("/static", "./static")
 	r.GET("/login/begin", func(c *gin.Context) {
-		user := datastore.GetUser() // Find the user
+		username := c.Query("username")
+		user, err := datastore.GetUser(username) // Find the user
+		if err != nil {
+			fmt.Println("Error on GetUser", err)
+			c.JSON(400, gin.H{
+				"error": err.Error(),
+			})
+		}
 
 		options, session, err := webAuthn.BeginLogin(user)
 		if err != nil {
@@ -161,7 +169,8 @@ func main() {
 		// options.publicKey contain our registration options
 	})
 	r.GET("/login/finish", func(c *gin.Context) {
-		user := datastore.GetUser() // Get the user
+		username := c.Query("username")
+		user, err := datastore.GetUser(username) // Get the user
 
 		// Get the session data stored from the function above
 		session := datastore.GetSession()
@@ -184,7 +193,8 @@ func main() {
 		c.JSON(200, "login success")
 	})
 	r.GET("/register/begin", func(c *gin.Context) {
-		user := datastore.GetUser() // Find or create the new user
+		username := c.Query("username")
+		user, err := datastore.GetUser(username) // Find or create the new user
 		options, session, err := webAuthn.BeginRegistration(user)
 		if err != nil {
 			c.JSON(500, gin.H{
@@ -200,7 +210,8 @@ func main() {
 		c.JSON(200, options)
 	})
 	r.GET("/register/finish", func(c *gin.Context) {
-		user := datastore.GetUser() // Get the user
+		username := c.Query("username")
+		user, err := datastore.GetUser(username) // Get the user
 
 		// Get the session data stored from the function above
 		session := datastore.GetSession()
