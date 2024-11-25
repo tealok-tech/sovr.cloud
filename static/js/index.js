@@ -73,7 +73,8 @@ async function onRegisterNext(e) {
 	e.preventDefault();
 	var username_element = document.querySelector("#register input[name='username']");
 	console.log("register username", username_element.value);
-	const url = "/register/begin?username=" + encodeURIComponent(username_element.value);
+	var displayname_element = document.querySelector("#register input[name='displayname']");
+	const url = "/register/begin?displayname=" + encodeURIComponent(displayname_element.value) + "&" + "username=" + encodeURIComponent(username_element.value);
 	const response = await fetch(url);
 	const json = await response.json()
 	console.log(json);

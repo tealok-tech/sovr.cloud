@@ -9,6 +9,9 @@ import (
 )
 
 type User struct {
+	displayname string
+	name        string
+	id          string
 }
 
 func (u User) AddCredential(c *webauthn.Credential) {
@@ -16,13 +19,13 @@ func (u User) AddCredential(c *webauthn.Credential) {
 func (u User) UpdateCredential(c *webauthn.Credential) {
 }
 func (u User) WebAuthnID() []byte {
-	return make([]byte, 0)
+	return []byte(u.id)
 }
 func (u User) WebAuthnName() string {
-	return ""
+	return u.name
 }
 func (u User) WebAuthnDisplayName() string {
-	return ""
+	return u.displayname
 }
 func (u User) WebAuthnCredentials() []webauthn.Credential {
 	return make([]webauthn.Credential, 0)
@@ -179,7 +182,9 @@ func main() {
 	})
 	r.GET("/register/begin", func(c *gin.Context) {
 		username := c.Query("username")
-		user, err := datastore.GetUser(username) // Find or create the new user
+		displayname := c.Query("displayname")
+		user, err := datastore.GetOrCreateUser(username, displayname) // Find or create the new user
+		log.Println("Got user", user)
 		options, session, err := webAuthn.BeginRegistration(user)
 		if err != nil {
 			c.JSON(500, gin.H{
@@ -188,6 +193,7 @@ func main() {
 			return
 		}
 		log.Println("Got session", session)
+		log.Println("Got options", options)
 		// handle errors if present
 		// store the sessionData values
 		//JSONResponse(w, options, http.StatusOK) // return the options generated
