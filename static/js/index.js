@@ -71,9 +71,9 @@ async function onLoginNext(e) {
 
 async function onRegisterNext(e) {
 	e.preventDefault();
-	var username_element = document.querySelector("#register .username");
-	console.log("register username", username_element);
-	const url = "/register/begin?username=" + encodeURIComponent(username);
+	var username_element = document.querySelector("#register input[name='username']");
+	console.log("register username", username_element.value);
+	const url = "/register/begin?username=" + encodeURIComponent(username_element.value);
 	const response = await fetch(url);
 	const json = await response.json()
 	console.log(json);
