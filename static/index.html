@@ -3,10 +3,15 @@
 <script src="/static/js/index.js"></script>
 </head>
 <body>
-	<h1>Loading...</h1>
-	<p>This page requires JavaScript to function since it's going to do some crypto work.</p>
-	<p>If you've got JavaScript disabled, you should enable it now.</p>
-
+	<div id="js_loading">
+		<h1>Loading...</h1>
+		<p>This page requires JavaScript to function since it's going to do some crypto work.</p>
+		<p>If you've got JavaScript disabled, you should enable it now.</p>
+	</div>
+	<div id="no_webauthn" style="display:none">
+		<h1>Sorry</h1>
+		<p>Looks like your browser does not support WebAuthN, which is required to do the cryptography work to log in to this website. This is pretty surprising since it's been available for years. You should either update your browser or use a major browser if you want to be able to use this website. We recommend [Firefox](https://www.mozilla.org/en-US/firefox/), but Chrome, Edge, or Safari should work too.</p>
+	</div>
 	<form id="login" style="display:none">
 		<h1>Login to Sovr.io</h1>
 		<label for="username">Username</label>

@@ -1,5 +1,10 @@
 document.addEventListener("DOMContentLoaded", function(event) {
-	console.log("Loaded");
+	console.log("DOM content loaded, getting started");
+	document.getElementById("js_loading").style.display = "none";
+	if (!window.PublicKeyCredential) {
+		document.getElementById("no_webauthn").style.display = "block";
+		return;
+	}
 	const login_form = document.getElementById("login");
 	login_form.addEventListener("submit", onLoginNext, true);
 	const register_form = document.getElementById("register");
