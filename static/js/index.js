@@ -76,6 +76,38 @@ async function onRegisterNext(e) {
 	var displayname_element = document.querySelector("#register input[name='displayname']");
 	const url = "/register/begin?displayname=" + encodeURIComponent(displayname_element.value) + "&" + "username=" + encodeURIComponent(username_element.value);
 	const response = await fetch(url);
+	const publicKeyCredentialCreationOptions = await response.json()
+	// Decode our URL-encoded base64 data
+	publicKeyCredentialCreationOptions.publicKey.challenge = base64ToArrayBuffer(publicKeyCredentialCreationOptions.publicKey.challenge);
+	publicKeyCredentialCreationOptions.publicKey.user.id = base64ToArrayBuffer(publicKeyCredentialCreationOptions.publicKey.user.id);
+	await createPublicKey(publicKeyCredentialCreationOptions);
+}
+async function createPublicKey(options) {
+	// Un-encode
+	// Actually register the new credential
+	const credential = await navigator.credentials.create(options);
+	console.log("New credential", credential);
+	const url = "/register/finish"
+	const response = await fetch(url, {
+		body: JSON.stringify(credential),
+		method: "POST",
+	})
+	if (!response.ok) {
+		console.error("Failed to finish registration", response)
+	}
 	const json = await response.json()
-	console.log(json);
+	console.log("Registration response", json)
+}
+
+function base64ToArrayBuffer(base64) {
+    const decodedBase64 = decodeURIComponent(base64.replace(/-/g, '+').replace(/_/g, '/'));
+
+    const binaryString = atob(decodedBase64);
+    const bytes = new Uint8Array(binaryString.length);
+
+    for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+    }
+
+    return bytes.buffer;
 }
