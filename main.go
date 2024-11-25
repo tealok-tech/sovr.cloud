@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/go-webauthn/webauthn/webauthn"
@@ -27,20 +26,6 @@ func (u User) WebAuthnDisplayName() string {
 }
 func (u User) WebAuthnCredentials() []webauthn.Credential {
 	return make([]webauthn.Credential, 0)
-}
-
-type Datastore struct {
-}
-
-func (d *Datastore) GetUser(username string) (User, error) {
-	return User{}, errors.New("No such user")
-}
-func (d *Datastore) GetSession() webauthn.SessionData {
-	return webauthn.SessionData{}
-}
-func (d *Datastore) SaveSession(u *webauthn.SessionData) {
-}
-func (d *Datastore) SaveUser(u User) {
 }
 
 var datastore Datastore
