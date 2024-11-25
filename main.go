@@ -31,8 +31,6 @@ func (u User) WebAuthnCredentials() []webauthn.Credential {
 	return make([]webauthn.Credential, 0)
 }
 
-var datastore Datastore
-
 func main() {
 	wconfig := &webauthn.Config{
 		RPDisplayName: "sovr.io",                         // Display Name for your site
@@ -46,6 +44,8 @@ func main() {
 		return
 	}
 	fmt.Println("Got webAuthn", webAuthn)
+
+	datastore := CreateDatastore()
 
 	r := gin.Default()
 	r.StaticFile("/", "./static/index.html")
@@ -74,7 +74,7 @@ func main() {
 		}
 
 		// store the session values
-		datastore.SaveSession(session)
+		datastore.SaveSession(session, user.id)
 
 		//JSONResponse(w, options, http.StatusOK) // return the options generated
 		c.JSON(200, options)
@@ -85,7 +85,7 @@ func main() {
 		user, err := datastore.GetUser(username) // Get the user
 
 		// Get the session data stored from the function above
-		session := datastore.GetSession()
+		session := datastore.GetSession(user.id)
 
 		credential, err := webAuthn.FinishLogin(user, session, c.Request)
 		if err != nil {
@@ -116,6 +116,7 @@ func main() {
 			})
 			return
 		}
+		datastore.SaveSession(session, user.id)
 		log.Println("Got session", session)
 		log.Println("Got options", options)
 		// handle errors if present
@@ -124,12 +125,12 @@ func main() {
 		// options.publicKey contain our registration options
 		c.JSON(200, options)
 	})
-	r.GET("/register/finish", func(c *gin.Context) {
+	r.POST("/register/finish", func(c *gin.Context) {
 		username := c.Query("username")
 		user, err := datastore.GetUser(username) // Get the user
 
 		// Get the session data stored from the function above
-		session := datastore.GetSession()
+		session := datastore.GetSession(username)
 
 		credential, err := webAuthn.FinishRegistration(user, session, c.Request)
 		if err != nil {
@@ -142,6 +143,7 @@ func main() {
 		// Pseudocode to add the user credential.
 		user.AddCredential(credential)
 		datastore.SaveUser(user)
+		log.Println("Saved new user on registration")
 
 		//JSONResponse(w, "Registration Success", http.StatusOK) // Handle next steps
 		c.JSON(200, "Registration Success")

@@ -57,6 +57,11 @@ function getLoginUsername() {
 	return username_element.value;
 }
 
+function getRegisterUsername() {
+	var username_element = document.querySelector("#register input[name='username']");
+	return username_element.value;
+}
+
 async function onLoginNext(e) {
 	e.preventDefault();
 	const username = getLoginUsername()
@@ -71,25 +76,33 @@ async function onLoginNext(e) {
 
 async function onRegisterNext(e) {
 	e.preventDefault();
-	var username_element = document.querySelector("#register input[name='username']");
-	console.log("register username", username_element.value);
+	var username = getRegisterUsername()
+	console.log("register username", username);
 	var displayname_element = document.querySelector("#register input[name='displayname']");
-	const url = "/register/begin?displayname=" + encodeURIComponent(displayname_element.value) + "&" + "username=" + encodeURIComponent(username_element.value);
+	const url = "/register/begin?displayname=" + encodeURIComponent(displayname_element.value) + "&" + "username=" + encodeURIComponent(username);
 	const response = await fetch(url);
 	const publicKeyCredentialCreationOptions = await response.json()
 	// Decode our URL-encoded base64 data
-	publicKeyCredentialCreationOptions.publicKey.challenge = base64ToArrayBuffer(publicKeyCredentialCreationOptions.publicKey.challenge);
-	publicKeyCredentialCreationOptions.publicKey.user.id = base64ToArrayBuffer(publicKeyCredentialCreationOptions.publicKey.user.id);
+	publicKeyCredentialCreationOptions.publicKey.challenge = urlEncodedBase64ToArrayBuffer(publicKeyCredentialCreationOptions.publicKey.challenge);
+	publicKeyCredentialCreationOptions.publicKey.user.id = urlEncodedBase64ToArrayBuffer(publicKeyCredentialCreationOptions.publicKey.user.id);
 	await createPublicKey(publicKeyCredentialCreationOptions);
 }
 async function createPublicKey(options) {
-	// Un-encode
-	// Actually register the new credential
 	const credential = await navigator.credentials.create(options);
 	console.log("New credential", credential);
-	const url = "/register/finish"
+	var username = getRegisterUsername()
+	const url = "/register/finish?username=" + encodeURIComponent(username);
 	const response = await fetch(url, {
-		body: JSON.stringify(credential),
+		body: JSON.stringify({
+			authenticatorAttachment: credential.authenticatorAttachment,
+			id: credential.id,
+			rawID: arrayBufferToUrlEncodedBase64(credential.rawID),
+			response: {
+				attestationObject: arrayBufferToUrlEncodedBase64(credential.response.attestationObject),
+				clientDataJson: arrayBufferToUrlEncodedBase64(credential.response.clientDataJson)
+			},
+			type: credential.type
+		}),
 		method: "POST",
 	})
 	if (!response.ok) {
@@ -99,7 +112,17 @@ async function createPublicKey(options) {
 	console.log("Registration response", json)
 }
 
-function base64ToArrayBuffer(base64) {
+function arrayBufferToUrlEncodedBase64(buffer) {
+    // Convert ArrayBuffer to base64
+    const bytes = new Uint8Array(buffer);
+    const binaryString = Array.from(bytes).map(byte => String.fromCharCode(byte)).join('');
+    const base64 = btoa(binaryString);
+    
+    // Make base64 URL-safe and URL encode
+    return encodeURIComponent(base64.replace(/\+/g, '-').replace(/\//g, '_'));
+}
+
+function urlEncodedBase64ToArrayBuffer(base64) {
     const decodedBase64 = decodeURIComponent(base64.replace(/-/g, '+').replace(/_/g, '/'));
 
     const binaryString = atob(decodedBase64);

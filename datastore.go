@@ -9,28 +9,43 @@ import (
 )
 
 type Datastore struct {
-	sessions []webauthn.SessionData
+	sessions map[string]webauthn.SessionData
+	users    []User
+}
+
+func CreateDatastore() Datastore {
+	return Datastore{
+		sessions: make(map[string]webauthn.SessionData),
+		users:    make([]User, 1),
+	}
 }
 
 func (d *Datastore) GetOrCreateUser(username string, displayname string) (User, error) {
-	return User{
+	user := User{
 		displayname: displayname,
 		name:        username,
 		id:          uuid.New().String(),
-	}, nil
+	}
+	d.users = append(d.users, user)
+	return user, nil
 }
 
 func (d *Datastore) GetUser(username string) (User, error) {
+	for _, u := range d.users {
+		if u.name == username {
+			return u, nil
+		}
+	}
 	return User{}, errors.New("No such user")
 }
 
-func (d *Datastore) GetSession() webauthn.SessionData {
-	return webauthn.SessionData{}
+func (d *Datastore) GetSession(userid string) webauthn.SessionData {
+	return d.sessions[userid]
 }
-func (d *Datastore) SaveSession(u *webauthn.SessionData) {
-	d.sessions = append(d.sessions, *u)
+func (d *Datastore) SaveSession(s *webauthn.SessionData, userid string) {
+	d.sessions[userid] = *s
 
-	f, err := os.Open("datastore.glob")
+	f, err := os.Create("datastore.glob")
 	if err != nil {
 		panic(err)
 	}
