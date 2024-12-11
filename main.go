@@ -45,11 +45,10 @@ func main() {
 	r.GET("/login/begin", func(c *gin.Context) {
 		username := c.Query("username")
 		log.Println("Start login for '%s'", username)
-		user, err := userstore.GetUser(username) // Find the user
-		if err != nil {
-			fmt.Println("Error on GetUser", err)
-			c.JSON(400, gin.H{
-				"error": err.Error(),
+		user := userstore.GetUser(username)
+		if user == nil {
+			c.JSON(404, gin.H{
+				"error": "User does not exist",
 			})
 			return
 		}
@@ -79,11 +78,10 @@ func main() {
 	r.POST("/login/finish", func(c *gin.Context) {
 		username := c.Query("username")
 		log.Println("Finish login for '%s'", username)
-		user, err := userstore.GetUser(username) // Get the user
-		if err != nil {
-			log.Println("Failed to get user: %v", err)
+		user := userstore.GetUser(username)
+		if user == nil {
 			c.JSON(400, gin.H{
-				"error": err.Error(),
+				"error": "User does not exist",
 			})
 			return
 		}
@@ -136,12 +134,10 @@ func main() {
 		username := c.Query("username")
 		displayname := c.Query("displayname")
 		log.Println("Beginning registration for: ", username)
-		// Get user
-		user, err := userstore.GetUser(username)
-		if err != nil {
+		user := userstore.GetUser(username)
+		if user == nil {
 			// User doesn't exist, create new user
 			user = NewUser(username, displayname)
-			log.Println("Created new user", user)
 			userstore.SaveUser(user)
 		}
 
@@ -177,10 +173,10 @@ func main() {
 	})
 	r.POST("/register/finish", func(c *gin.Context) {
 		username := c.Query("username")
-		user, err := userstore.GetUser(username) // Get the user
+		user := userstore.GetUser(username) // Get the user
 		if user == nil {
-			log.Println("Unable to find user", username)
-			c.JSON(500, gin.H{
+			log.Println("Unable to find user to finish registration", username)
+			c.JSON(400, gin.H{
 				"error": "No such user",
 			})
 			return

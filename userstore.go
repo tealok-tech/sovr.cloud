@@ -21,14 +21,14 @@ func CreateUserstore() Userstore {
 	return u
 }
 
-func (d *Userstore) GetUser(username string) (*User, error) {
+func (d *Userstore) GetUser(username string) *User {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 	user, ok := d.users[username]
 	if !ok {
-		return &User{}, fmt.Errorf("error getting user '%s': does not exist", username)
+		return nil
 	}
-	return user, nil
+	return user
 }
 
 func (d *Userstore) GobEncode() ([]byte, error) {
