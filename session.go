@@ -7,66 +7,38 @@ import (
 	"sync"
 )
 
+// A user's session which is used after authentication to continue to identify the user to the system.
 type SessionUser struct {
 	id   uuid.UUID
 	user *User
 }
 
+// The store of all sessions. This is just stored in memory of the application and will therefore invalidate all sessions on process restart.
 type Sessionstore struct {
 	mu       sync.RWMutex
 	sessions map[string]*SessionUser
-	users    map[string]*User
 }
 
+// Create a new store of sessions
 func CreateSessionstore() Sessionstore {
 	return Sessionstore{
 		sessions: make(map[string]*SessionUser),
-		users:    make(map[string]*User, 1),
 	}
 }
 
-func (d *Sessionstore) GetUser(username string) (*User, error) {
-	d.mu.Lock()
-	defer d.mu.Unlock()
-	user, ok := d.users[username]
-	if !ok {
-		return &User{}, fmt.Errorf("error getting user '%s': does not exist", username)
-	}
-	return user, nil
-}
-
+// Get session by session UUID
 func (db *Sessionstore) GetSession(sessionID string) (*SessionUser, error) {
 	db.mu.Lock()
 	defer db.mu.Unlock()
 
 	session, ok := db.sessions[sessionID]
-	log.Println("Getting session", sessionID, ok, session)
 	if !ok {
 		return nil, fmt.Errorf("error getting session '%s': does not exist", sessionID)
 	}
 	return session, nil
 }
 
-/*
-	func (d *Sessionstore) SaveSession(s *webauthn.SessionData, userid string) {
-		d.sessions[userid] = *s
-
-		f, err := os.Create("datastore.glob")
-		if err != nil {
-			panic(err)
-		}
-		defer f.Close()
-		enc := gob.NewEncoder(f)
-		err = enc.Encode(d)
-	}
-*/
-func (d *Sessionstore) SaveUser(u *User) {
-	d.mu.Lock()
-	defer d.mu.Unlock()
-	d.users[u.name] = u
-	fmt.Println("Saved user", u.name)
-}
-
+// Start a new session for the given user and return the UUID as a string for storing in a cookie
 func (db *Sessionstore) StartSession(u *User) string {
 
 	db.mu.Lock()
@@ -79,11 +51,4 @@ func (db *Sessionstore) StartSession(u *User) string {
 	}
 	log.Println("Started user session for", u.name, id)
 	return id.String()
-}
-
-func (db *Sessionstore) DeleteSession(u string) {
-	db.mu.Lock()
-	defer db.mu.Unlock()
-
-	delete(db.sessions, u)
 }
