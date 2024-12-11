@@ -1,13 +1,11 @@
 package main
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
 	"log"
 	"net/http"
-	"os"
 )
 
 func main() {
@@ -20,27 +18,18 @@ func main() {
 	var webAuthn *webauthn.WebAuthn
 	var err error
 	if webAuthn, err = webauthn.New(wconfig); err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		return
 	}
-	fmt.Println("Got webAuthn", webAuthn)
 
 	authstore := CreateAuthstore()
 	sessionstore := CreateSessionstore()
 	userstore := CreateUserstore()
-	if err != nil {
-		log.Println(err)
-		os.Exit(1)
-	}
 
 	r := gin.Default()
 	r.LoadHTMLGlob("templates/*")
+	r.Static("/static", "./static")
 	r.StaticFile("/", "./static/index.html")
-	r.GET("/ping", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "pong",
-		})
-	})
 	r.GET("/hello", func(c *gin.Context) {
 		session, _ := sessionstore.GetSession(c)
 		var user *User
@@ -53,7 +42,6 @@ func main() {
 			"displayname": user.displayName,
 		})
 	})
-	r.Static("/static", "./static")
 	r.GET("/login/begin", func(c *gin.Context) {
 		username := c.Query("username")
 		log.Println("Start login for '%s'", username)
@@ -63,11 +51,11 @@ func main() {
 			c.JSON(400, gin.H{
 				"error": err.Error(),
 			})
+			return
 		}
 
 		options, session, err := webAuthn.BeginLogin(user)
 		if err != nil {
-			// Handle Error and return.
 			log.Println("Error on login begin: %v", err)
 			c.JSON(400, gin.H{
 				"error": err.Error(),

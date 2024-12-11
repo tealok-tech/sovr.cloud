@@ -67,8 +67,9 @@ async function onLoginNext(e) {
 	const username = getLoginUsername()
 	const url = "/login/begin?username=" + encodeURIComponent(username);
 	const response = await fetch(url);
-	if (response.status == 400) {
+	if (response.status == 404) {
 		showRegisterForm();
+		return;
 	}
 	const json = await response.json()
 	console.log("Login begin:", json);
