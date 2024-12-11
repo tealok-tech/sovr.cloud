@@ -11,10 +11,11 @@ import (
 )
 
 func main() {
+	config := CreateConfig()
 	wconfig := &webauthn.Config{
-		RPDisplayName: "localhost",                       // Display Name for your site
-		RPID:          "localhost",                       // Generally the FQDN for your site
-		RPOrigins:     []string{"http://localhost:8080"}, // The origin URLs allowed for WebAuthn requests
+		RPDisplayName: config.RelyingPartyDisplayName, // Display Name for your site
+		RPID:          config.RelyingPartyID,          // Generally the FQDN for your site
+		RPOrigins:     config.RelyingPartyOrigins,     // The origin URLs allowed for WebAuthn requests
 	}
 	var webAuthn *webauthn.WebAuthn
 	var err error
@@ -84,9 +85,8 @@ func main() {
 			false, // allow JavaScript access to the cookie
 		)
 
-		//JSONResponse(w, options, http.StatusOK) // return the options generated
-		c.JSON(200, options)
 		// options.publicKey contain our registration options
+		c.JSON(200, options)
 	})
 	r.POST("/login/finish", func(c *gin.Context) {
 		username := c.Query("username")

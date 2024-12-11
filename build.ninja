@@ -6,4 +6,4 @@ rule compile-go
   command = CGO_ENABLED=$CGO_ENABLED GOARCH=$GOARCH GOOS=$GOOS go build -ldflags=$ldflags -o $out $in
   description = Compile go
 
-build out/sovr-server: compile-go auth.go main.go session.go user.go userstore.go
+build out/sovr-server: compile-go auth.go config.go main.go session.go user.go userstore.go
