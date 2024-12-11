@@ -10,6 +10,7 @@ import (
 )
 
 func (u User) UpdateCredential(c *webauthn.Credential) {
+	log.Println("This is the point where I should update the credential, but I don't know what that specifically means.")
 }
 
 func main() {
