@@ -27,7 +27,9 @@ func main() {
 	}
 	fmt.Println("Got webAuthn", webAuthn)
 
-	datastore := CreateDatastore()
+	authstore := CreateAuthstore()
+	sessionstore := CreateSessionstore()
+	userstore := CreateUserstore()
 
 	r := gin.Default()
 	r.LoadHTMLGlob("templates/*")
@@ -45,7 +47,7 @@ func main() {
 			})
 			return
 		}
-		session, err := datastore.GetSessionUser(cookie.Value)
+		session, err := sessionstore.GetSession(cookie.Value)
 		log.Println("Got session", session)
 		if err != nil {
 			c.HTML(http.StatusOK, "hello.tmpl", gin.H{
@@ -67,7 +69,7 @@ func main() {
 	r.GET("/login/begin", func(c *gin.Context) {
 		username := c.Query("username")
 		log.Println("Start login for '%s'", username)
-		user, err := datastore.GetUser(username) // Find the user
+		user, err := userstore.GetUser(username) // Find the user
 		if err != nil {
 			fmt.Println("Error on GetUser", err)
 			c.JSON(400, gin.H{
@@ -87,7 +89,7 @@ func main() {
 
 		c.SetCookie(
 			"authentication",
-			datastore.StartSessionAuth(session),
+			authstore.StartSession(session),
 			60*60*24*14, // Expires in 2 weeks
 			"/",         // Valid for all paths
 			"",
@@ -102,7 +104,7 @@ func main() {
 	r.POST("/login/finish", func(c *gin.Context) {
 		username := c.Query("username")
 		log.Println("Finish login for '%s'", username)
-		user, err := datastore.GetUser(username) // Get the user
+		user, err := userstore.GetUser(username) // Get the user
 		if err != nil {
 			log.Println("Failed to get user: %v", err)
 			c.JSON(400, gin.H{
@@ -119,7 +121,7 @@ func main() {
 			})
 			return
 		}
-		session, err := datastore.GetSessionAuth(cookie.Value)
+		session, err := authstore.GetSession(cookie.Value)
 		if err != nil {
 			log.Println("Failed to get session: %v", err)
 			c.JSON(400, gin.H{
@@ -149,11 +151,11 @@ func main() {
 		// If login was successful, update the credential object
 		// Pseudocode to update the user credential.
 		user.UpdateCredential(credential)
-		datastore.DeleteSessionAuth(cookie.Value)
-		datastore.SaveUser(user)
+		authstore.DeleteSession(cookie.Value)
+		userstore.SaveUser(user)
 		c.SetCookie(
 			"session",
-			datastore.StartSessionUser(user),
+			sessionstore.StartSession(user),
 			60*60*24*14, // Session cookie, closes when the browser window closes
 			"/",         // Valid for all paths
 			"",
@@ -169,12 +171,12 @@ func main() {
 		displayname := c.Query("displayname")
 		log.Println("Beginning registration for: ", username)
 		// Get user
-		user, err := datastore.GetUser(username)
+		user, err := userstore.GetUser(username)
 		if err != nil {
 			// User doesn't exist, create new user
 			user = NewUser(username, displayname)
 			log.Println("Created new user", user)
-			datastore.SaveUser(user)
+			userstore.SaveUser(user)
 		}
 
 		registerOptions := func(credCreationOpts *protocol.PublicKeyCredentialCreationOptions) {
@@ -191,7 +193,7 @@ func main() {
 		}
 		c.SetCookie(
 			"registration",
-			datastore.StartSessionAuth(session),
+			authstore.StartSession(session),
 			3600, // age of the cookie in seconds
 			"/",  // Valid for all paths
 			"",
@@ -209,7 +211,7 @@ func main() {
 	})
 	r.POST("/register/finish", func(c *gin.Context) {
 		username := c.Query("username")
-		user, err := datastore.GetUser(username) // Get the user
+		user, err := userstore.GetUser(username) // Get the user
 		if user == nil {
 			log.Println("Unable to find user", username)
 			c.JSON(500, gin.H{
@@ -228,7 +230,7 @@ func main() {
 			return
 		}
 		// Get the session data stored from the function above
-		session, err := datastore.GetSessionAuth(cookie)
+		session, err := authstore.GetSession(cookie)
 		if err != nil {
 			log.Println("Failed to get session: %v", err)
 			c.JSON(500, gin.H{
@@ -249,12 +251,12 @@ func main() {
 		// If creation was successful, store the credential object
 		// Pseudocode to add the user credential.
 		user.AddCredential(*credential)
-		datastore.SaveUser(user)
+		userstore.SaveUser(user)
 		log.Println("Saved new user on registration")
 
 		c.SetCookie(
 			"session",
-			datastore.StartSessionUser(user),
+			sessionstore.StartSession(user),
 			60*60*24*14, // cookie max age
 			"/",         // Valid for all paths
 			"",

@@ -3,9 +3,11 @@ package main
 import (
 	"crypto/rand"
 	"encoding/binary"
+	"fmt"
 
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
+	"sync"
 )
 
 // User represents the user model
@@ -14,6 +16,26 @@ type User struct {
 	name        string
 	displayName string
 	credentials []webauthn.Credential
+}
+type Userstore struct {
+	mu    sync.RWMutex
+	users map[string]*User
+}
+
+func CreateUserstore() Userstore {
+	return Userstore{
+		users: make(map[string]*User, 1),
+	}
+}
+
+func (d *Userstore) GetUser(username string) (*User, error) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	user, ok := d.users[username]
+	if !ok {
+		return &User{}, fmt.Errorf("error getting user '%s': does not exist", username)
+	}
+	return user, nil
 }
 
 // NewUser creates and returns a new User
@@ -26,6 +48,13 @@ func NewUser(name string, displayName string) *User {
 	// user.credentials = []webauthn.Credential{}
 
 	return user
+}
+
+func (d *Userstore) SaveUser(u *User) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	d.users[u.name] = u
+	fmt.Println("Saved user", u.name)
 }
 
 func randomUint64() uint64 {
