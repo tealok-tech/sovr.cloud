@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
+	"log"
 )
 
 // A simple representation of a user
@@ -52,6 +53,10 @@ func (u User) CredentialExcludeList() []protocol.CredentialDescriptor {
 	}
 
 	return credentialExcludeList
+}
+
+func (u User) UpdateCredential(c *webauthn.Credential) {
+	log.Println("This is the point where I should update the credential, but I don't know what that specifically means.")
 }
 
 // WebAuthnCredentials returns credentials owned by the user
