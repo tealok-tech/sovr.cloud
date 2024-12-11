@@ -7,6 +7,7 @@ import (
 	"github.com/go-webauthn/webauthn/webauthn"
 	"log"
 	"net/http"
+	"os"
 )
 
 func (u User) UpdateCredential(c *webauthn.Credential) {
@@ -30,6 +31,10 @@ func main() {
 	authstore := CreateAuthstore()
 	sessionstore := CreateSessionstore()
 	userstore := CreateUserstore()
+	if err != nil {
+		log.Println(err)
+		os.Exit(1)
+	}
 
 	r := gin.Default()
 	r.LoadHTMLGlob("templates/*")
