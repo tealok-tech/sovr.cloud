@@ -16,6 +16,12 @@ type User struct {
 	credentials []webauthn.Credential // Credentials associated with the user
 }
 
+var UserAnonymous = &User{
+	id:          0,
+	name:        "",
+	displayName: "Anonymous",
+}
+
 // Create a new user
 func NewUser(name string, displayName string) *User {
 

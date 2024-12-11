@@ -45,29 +45,15 @@ func main() {
 		})
 	})
 	r.GET("/hello", func(c *gin.Context) {
-		cookie, err := c.Request.Cookie("session")
-		if err != nil {
-			c.HTML(http.StatusOK, "hello.tmpl", gin.H{
-				"displayname": "anonymous",
-			})
-			return
-		}
-		session, err := sessionstore.GetSession(cookie.Value)
-		log.Println("Got session", session)
-		if err != nil {
-			c.HTML(http.StatusOK, "hello.tmpl", gin.H{
-				"displayname": "anonymous2",
-			})
-			return
-		}
+		session, _ := sessionstore.GetSession(c)
+		var user *User
 		if session == nil {
-			c.HTML(http.StatusOK, "hello.tmpl", gin.H{
-				"displayname": "anonymous3",
-			})
-			return
+			user = UserAnonymous
+		} else {
+			user = session.user
 		}
 		c.HTML(http.StatusOK, "hello.tmpl", gin.H{
-			"displayname": session.user.displayName,
+			"displayname": user.displayName,
 		})
 	})
 	r.Static("/static", "./static")
@@ -158,17 +144,8 @@ func main() {
 		user.UpdateCredential(credential)
 		authstore.DeleteSession(cookie.Value)
 		userstore.SaveUser(user)
-		c.SetCookie(
-			"session",
-			sessionstore.StartSession(user),
-			60*60*24*14, // Session cookie, closes when the browser window closes
-			"/",         // Valid for all paths
-			"",
-			false, // HTTPS only
-			true,  // allow JavaScript access to the cookie
-		)
+		sessionstore.StartSession(c, user)
 
-		//JSONResponse(w, "Login Success", http.StatusOK)
 		c.JSON(200, "login success")
 	})
 	r.GET("/register/begin", func(c *gin.Context) {
@@ -257,18 +234,7 @@ func main() {
 		// Pseudocode to add the user credential.
 		user.AddCredential(*credential)
 		userstore.SaveUser(user)
-		log.Println("Saved new user on registration")
-
-		c.SetCookie(
-			"session",
-			sessionstore.StartSession(user),
-			60*60*24*14, // cookie max age
-			"/",         // Valid for all paths
-			"",
-			false, // HTTPS only
-			true,  // allow JavaScript access to the cookie
-		)
-		//JSONResponse(w, "Registration Success", http.StatusOK) // Handle next steps
+		sessionstore.StartSession(c, user)
 		c.JSON(200, "Registration Success")
 	})
 	_ = r.Run()
