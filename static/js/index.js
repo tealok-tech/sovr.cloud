@@ -71,7 +71,43 @@ async function onLoginNext(e) {
 		showRegisterForm();
 	}
 	const json = await response.json()
-	console.log(json);
+	console.log("Login begin:", json);
+
+	var credentialRequestOptions = json
+	// credentialRequestOptions.publicKey.challenge = bufferDecode(credentialRequestOptions.publicKey.challenge);
+	credentialRequestOptions.publicKey.challenge = urlEncodedBase64ToArrayBuffer(credentialRequestOptions.publicKey.challenge);
+	credentialRequestOptions.publicKey.allowCredentials.forEach(function (listItem) {
+		listItem.id = urlEncodedBase64ToArrayBuffer(listItem.id)
+	});
+	
+	var assertion = await navigator.credentials.get({
+		publicKey: credentialRequestOptions.publicKey
+	})
+
+	let authData = assertion.response.authenticatorData;
+	let clientDataJSON = assertion.response.clientDataJSON;
+	let rawId = assertion.rawId;
+	let sig = assertion.response.signature;
+	let userHandle = assertion.response.userHandle;
+
+	const url2 = "/login/finish?username=" + encodeURIComponent(username);
+	const response2 = await fetch(url2, {
+		body: JSON.stringify({
+			id: assertion.id,
+			rawId: bufferEncode(rawId),
+			type: assertion.type,
+			response: {
+				authenticatorData: bufferEncode(authData),
+				clientDataJSON: bufferEncode(clientDataJSON),
+				signature: bufferEncode(sig),
+				userHandle: bufferEncode(userHandle),
+			},
+		}),
+		method: "POST",
+	});
+	const json2 = await response2.json()
+	console.log("Login finish:", json2);
+	window.location.href = "/hello";
 }
 
 async function onRegisterNext(e) {
@@ -87,19 +123,23 @@ async function onRegisterNext(e) {
 	publicKeyCredentialCreationOptions.publicKey.user.id = urlEncodedBase64ToArrayBuffer(publicKeyCredentialCreationOptions.publicKey.user.id);
 	await createPublicKey(publicKeyCredentialCreationOptions);
 }
+
 async function createPublicKey(options) {
 	const credential = await navigator.credentials.create(options);
 	console.log("New credential", credential);
 	var username = getRegisterUsername()
 	const url = "/register/finish?username=" + encodeURIComponent(username);
+	const rawID = bufferEncode(credential.rawId)
+	const attestationObject = bufferEncode(credential.response.attestationObject)
+	const clientDataJSON = bufferEncode(credential.response.clientDataJSON)
 	const response = await fetch(url, {
 		body: JSON.stringify({
 			authenticatorAttachment: credential.authenticatorAttachment,
 			id: credential.id,
-			rawID: arrayBufferToUrlEncodedBase64(credential.rawID),
+			rawID: rawID,
 			response: {
-				attestationObject: arrayBufferToUrlEncodedBase64(credential.response.attestationObject),
-				clientDataJson: arrayBufferToUrlEncodedBase64(credential.response.clientDataJson)
+				attestationObject: attestationObject,
+				clientDataJson: clientDataJSON,
 			},
 			type: credential.type
 		}),
@@ -110,6 +150,7 @@ async function createPublicKey(options) {
 	}
 	const json = await response.json()
 	console.log("Registration response", json)
+	window.location.href = "/hello";
 }
 
 function arrayBufferToUrlEncodedBase64(buffer) {
@@ -133,4 +174,16 @@ function urlEncodedBase64ToArrayBuffer(base64) {
     }
 
     return bytes.buffer;
+}
+
+// Base64 to ArrayBuffer
+function bufferDecode(value) {
+	return Uint8Array.from(atob(value), c => c.charCodeAt(0));
+}
+
+function bufferEncode(value) {
+      return btoa(String.fromCharCode.apply(null, new Uint8Array(value)))
+        .replace(/\+/g, "-")
+        .replace(/\//g, "_")
+        .replace(/=/g, "");;
 }
