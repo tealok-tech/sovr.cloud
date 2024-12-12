@@ -39,12 +39,12 @@ func main() {
 			user = session.user
 		}
 		c.HTML(http.StatusOK, "hello.tmpl", gin.H{
-			"displayname": user.displayName,
+			"displayname": user.DisplayName,
 		})
 	})
 	r.GET("/login/begin", func(c *gin.Context) {
 		username := c.Query("username")
-		log.Println("Start login for '%s'", username)
+		log.Println("Start login for", username)
 		user := userstore.GetUser(username)
 		if user == nil {
 			c.JSON(404, gin.H{
@@ -133,7 +133,7 @@ func main() {
 	r.GET("/register/begin", func(c *gin.Context) {
 		username := c.Query("username")
 		displayname := c.Query("displayname")
-		log.Println("Beginning registration for: ", username)
+		log.Println("Beginning registration for:", username)
 		user := userstore.GetUser(username)
 		if user == nil {
 			// User doesn't exist, create new user
@@ -145,7 +145,7 @@ func main() {
 			credCreationOpts.CredentialExcludeList = user.CredentialExcludeList()
 		}
 
-		// generate PublicKeyCredentialCreationOptions, session data
+		log.Println("Generating registration options and session data for:", username)
 		options, session, err := webAuthn.BeginRegistration(user, registerOptions)
 		if err != nil {
 			c.JSON(500, gin.H{

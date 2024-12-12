@@ -60,7 +60,7 @@ func (db *Sessionstore) StartSession(c *gin.Context, u *User) string {
 		id,
 		u,
 	}
-	log.Println("Started user session for", u.name, id)
+	log.Println("Started user session for", u.Name, id)
 	c.SetCookie(
 		SESSION_COOKIE_NAME,
 		id.String(),
