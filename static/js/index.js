@@ -38,15 +38,16 @@ document.addEventListener("DOMContentLoaded", function(event) {
 	register_form.addEventListener("submit", onRegisterNext, true);
 	Promise.all([p1, p2]).then((values) => {
 		if(values[0] && values[1]) {
-			login_form.style.display = "block";
+			const login_container = document.getElementById("login-container");
+			login_container.style.display = "block";
 		}
 	})
 });
 
 function showRegisterForm() {
 	console.log("Showing registration form");
-	document.getElementById("login").style.display = "none";
-	document.getElementById("register").style.display = "block";
+	document.getElementById("login-container").style.display = "none";
+	document.getElementById("register-container").style.display = "block";
 	const login_username = document.querySelector("#login input[name='username']");
 	const register_username = document.querySelector("#register input[name='username']");
 	register_username.value = login_username.value;
@@ -64,6 +65,16 @@ function getRegisterUsername() {
 
 async function onLoginNext(e) {
 	e.preventDefault();
+	// Show spinner
+	const button = this.querySelector('button');
+	button.classList.add('loading');
+ 	button.disabled = true;
+
+ 	// Simulate API call
+ 	setTimeout(() => {
+ 	button.classList.remove('loading');
+ 	button.disabled = false;
+ 	}, 2000);
 	const username = getLoginUsername()
 	const url = "/login/begin?username=" + encodeURIComponent(username);
 	const response = await fetch(url);

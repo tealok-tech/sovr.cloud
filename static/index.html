@@ -1,6 +1,11 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<script src="/static/js/index.js"></script>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Login</title>
+	<link href="/static/css/styles.css" rel="stylesheet" />
+	<script src="/static/js/index.js"></script>
 </head>
 <body>
 	<div id="js_loading">
@@ -28,20 +33,53 @@
 		<h1>Sorry, no UserVerifyingPlatformAuthenticator</h1>
 		<p>Your browser does not support UserVerifyingPlatformAuthenticator. This is usually something like Touch ID, Face ID, Windows Hello, a fingerprint scanner on Android, or an integrated authenticator like <a href="https://bitwarden.com/help/integrated-authenticator/">Bitwarden</a>. You'll need to configure an authenticator for this browser before you can use this page.</p>
 	</div>
-	<form id="login" style="display:none">
-		<h1>Login to Sovr.io</h1>
-		<label for="username">Username</label>
-		<input type="text" name="username" autocomplete="username webauthn" required>
-		<button type="submit">Next</button>
-	</form>
+	<header>
+		<nav>
+			<a href="#">Home</a>
+			<a href="#">Documentation</a>
+		</nav>
+	</header>
 
-	<form id="register" style="display:none">
-		<h1>Register to Sovr.io</h1>
-		<label for="username">Username</label>
-		<input type="text" name="username" autocomplete="username webauthn" required>
-		<label for="username">Display Name</label>
-		<input type="text" name="displayname" autocomplete="name" required>
-		<button type="submit">Next</button>
-	</form>
+	<main>
+		<div id="login-container" style="display:none">
+			<h1>Login to Sovr Cloud</h1>
+			<form id="login">
+				<div class="form-group">
+					<label for="username">Username</label>
+					<input type="text" name="username" autocomplete="username webauthn" placeholder="cdoctor" required />
+				</div>
+				<div class="form-group">
+					<button type="submit">
+						Next
+						<div class="spinner"></div>
+					</button>
+				</div>
+			</form>
+		</div>
+		<div id="register-container" style="display:none">
+			<h1>Register to Sovr Cloud</h1>
+			<form id="register">
+				<div class="form-group">
+					<label for="username">Username</label>
+					<input type="text" name="username" autocomplete="username webauthn" placeholder="cdoctor" required />
+				</div>
+				<div class="form-group">
+					<label for="username">Display Name</label>
+					<input type="text" name="displayname" autocomplete="name" placeholder="Cory Doctorow" required />
+				</div>
+				<div class="form-group">
+					<button type="submit">
+						Next
+						<div class="spinner"></div>
+					</button>
+				</div>
+			</form>
+		</div>
+	</main>
+
+	<footer>
+		<p>&copy; 2024 Gleipnir. All rights reserved.</p>
+	</footer>
+
 </body>
 </html>
