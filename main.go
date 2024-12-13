@@ -28,7 +28,7 @@ func main() {
 	userstore := CreateUserstore()
 
 	r := gin.Default()
-	store := cookie.NewStore([]byte("secret"))
+	store := cookie.NewStore([]byte(config.SessionSecret))
 	r.Use(sessions.Sessions("session", store))
 
 	r.LoadHTMLGlob("templates/*")
