@@ -117,9 +117,8 @@ async function onLoginNext(e) {
 		}),
 		method: "POST",
 	});
-	const json2 = await response2.json()
-	console.log("Login finish:", json2);
-	window.location.href = "/hello";
+	console.log("Login finish");
+	window.location.href = response2.headers.get("Location");
 }
 
 async function onRegisterNext(e) {
@@ -160,9 +159,8 @@ async function createPublicKey(options) {
 	if (!response.ok) {
 		console.error("Failed to finish registration", response)
 	}
-	const json = await response.json()
-	console.log("Registration response", json)
-	window.location.href = "/hello";
+	console.log("Registration complete")
+	window.location.href = response.headers.get("Location");
 }
 
 function arrayBufferToUrlEncodedBase64(buffer) {

@@ -50,21 +50,8 @@ func main() {
 			"User": user,
 		})
 	})
-	r.GET("/hello", func(c *gin.Context) {
-		session := sessions.Default(c)
-		username := session.Get("username")
-		var user *User
-		if username == nil {
-			user = UserAnonymous
-		} else {
-			user = userstore.GetUser(username.(string))
-			if user == nil {
-				user = UserAnonymous
-			}
-		}
-		c.HTML(http.StatusOK, "hello.tmpl", gin.H{
-			"displayname": user.DisplayName,
-		})
+	r.GET("/login", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "login.tmpl", gin.H{})
 	})
 	r.GET("/login/begin", func(c *gin.Context) {
 		username := c.Query("username")
@@ -152,9 +139,27 @@ func main() {
 		userstore.SaveUser(user)
 		user_session := sessions.Default(c)
 		user_session.Set("username", user.Name)
-		user_session.Save()
-
-		c.JSON(200, "login success")
+		err = user_session.Save()
+		if err != nil {
+			log.Println("Failed to save session", err)
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": err,
+			})
+		}
+		c.Header("Location", "/")
+		c.Writer.WriteHeader(http.StatusNoContent)
+	})
+	r.POST("/logout", func(c *gin.Context) {
+		user_session := sessions.Default(c)
+		user_session.Clear()
+		err = user_session.Save()
+		if err != nil {
+			log.Println("Failed to save session", err)
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": err,
+			})
+		}
+		c.Redirect(http.StatusFound, "/")
 	})
 	r.GET("/register/begin", func(c *gin.Context) {
 		username := c.Query("username")
@@ -242,8 +247,15 @@ func main() {
 		userstore.SaveUser(user)
 		user_session := sessions.Default(c)
 		user_session.Set("username", user.Name)
-		user_session.Save()
-		c.JSON(200, "Registration Success")
+		err = user_session.Save()
+		if err != nil {
+			log.Println("Failed to save session", err)
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": err,
+			})
+		}
+		c.Header("Location", "/")
+		c.Writer.WriteHeader(http.StatusNoContent)
 	})
 	_ = r.Run()
 }
