@@ -71,7 +71,7 @@ func main() {
 	})
 	r.GET("/login/begin", func(c *gin.Context) {
 		username := c.Query("username")
-		log.Println("Start login for", username)
+		log.Println("Start login for:", username)
 		user := userstore.GetUser(username)
 		if user == nil {
 			c.JSON(404, gin.H{
@@ -104,7 +104,7 @@ func main() {
 	})
 	r.POST("/login/finish", func(c *gin.Context) {
 		username := c.Query("username")
-		log.Println("Finish login for '%s'", username)
+		log.Println("Finish login for:", username)
 		user := userstore.GetUser(username)
 		if user == nil {
 			c.JSON(400, gin.H{
