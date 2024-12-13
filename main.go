@@ -1,6 +1,8 @@
 package main
 
 import (
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
@@ -23,20 +25,26 @@ func main() {
 	}
 
 	authstore := CreateAuthstore()
-	sessionstore := CreateSessionstore()
 	userstore := CreateUserstore()
 
 	r := gin.Default()
+	store := cookie.NewStore([]byte("secret"))
+	r.Use(sessions.Sessions("session", store))
+
 	r.LoadHTMLGlob("templates/*")
 	r.Static("/static", "./static")
 	r.StaticFile("/", "./static/index.html")
 	r.GET("/hello", func(c *gin.Context) {
-		session, _ := sessionstore.GetSession(c)
+		session := sessions.Default(c)
+		username := session.Get("username")
 		var user *User
-		if session == nil {
+		if username == nil {
 			user = UserAnonymous
 		} else {
-			user = session.user
+			user = userstore.GetUser(username.(string))
+			if user == nil {
+				user = UserAnonymous
+			}
 		}
 		c.HTML(http.StatusOK, "hello.tmpl", gin.H{
 			"displayname": user.DisplayName,
@@ -126,7 +134,9 @@ func main() {
 		user.UpdateCredential(credential)
 		authstore.DeleteSession(cookie.Value)
 		userstore.SaveUser(user)
-		sessionstore.StartSession(c, user)
+		user_session := sessions.Default(c)
+		user_session.Set("username", user.Name)
+		user_session.Save()
 
 		c.JSON(200, "login success")
 	})
@@ -214,7 +224,9 @@ func main() {
 		// Pseudocode to add the user credential.
 		user.AddCredential(*credential)
 		userstore.SaveUser(user)
-		sessionstore.StartSession(c, user)
+		user_session := sessions.Default(c)
+		user_session.Set("username", user.Name)
+		user_session.Save()
 		c.JSON(200, "Registration Success")
 	})
 	_ = r.Run()
