@@ -136,7 +136,10 @@ func main() {
 		credential, err := webAuthn.FinishLogin(user, *session, c.Request)
 		if err != nil {
 			// Handle Error and return.
-			log.Println("Error on login finish: %v", err)
+			log.Println("Error on login finish:", err)
+			c.JSON(400, gin.H{
+				"error": err.Error(),
+			})
 			return
 		}
 
@@ -161,6 +164,7 @@ func main() {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error": err,
 			})
+			return
 		}
 		c.Header("Location", "/")
 		c.Writer.WriteHeader(http.StatusNoContent)
@@ -174,6 +178,7 @@ func main() {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error": err,
 			})
+			return
 		}
 		c.Redirect(http.StatusFound, "/")
 	})
