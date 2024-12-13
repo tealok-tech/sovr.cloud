@@ -33,7 +33,23 @@ func main() {
 
 	r.LoadHTMLGlob("templates/*")
 	r.Static("/static", "./static")
-	r.StaticFile("/", "./static/index.html")
+	r.GET("/", func(c *gin.Context) {
+		session := sessions.Default(c)
+		username := session.Get("username")
+		var user *User
+		if username == nil {
+			c.Redirect(http.StatusFound, "/login")
+			return
+		}
+		user = userstore.GetUser(username.(string))
+		if user == nil {
+			c.Redirect(http.StatusFound, "/login")
+			return
+		}
+		c.HTML(http.StatusOK, "index.tmpl", gin.H{
+			"User": user,
+		})
+	})
 	r.GET("/hello", func(c *gin.Context) {
 		session := sessions.Default(c)
 		username := session.Get("username")
