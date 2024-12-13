@@ -1,11 +1,11 @@
+{{ define "base" }}
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Sovr Cloud</title>
+	{{ template "title" . }}
 	<link href="/static/css/styles.css" rel="stylesheet" />
-	<script src="/static/js/index.js"></script>
 </head>
 <body>
 	<header>
@@ -19,11 +19,15 @@
 			</form>
 		</nav>
 	</header>
-	<main>
-		<div class="message">
-			<h1>Hello, {{.User.DisplayName}}</h1>
-			<p>Right now there's nothing here. Seeing this means you're authenticated, which is great, but we have more work to do before that helps you at all.</p>
-		</div>
-	</main>
+    {{ template "scripts" . }}
+    {{ template "sidebar" . }}
+    {{ template "content" . }}
+	<footer>
+		<p>&copy; 2024 Gleipnir. All rights reserved.</p>
+	</footer>
 </body>
 </html>
+{{ end }}
+// We define empty blocks for optional content so we don't have to define a block in child templates that don't need them
+{{ define "scripts" }}{{ end }}
+{{ define "sidebar" }}{{ end }}

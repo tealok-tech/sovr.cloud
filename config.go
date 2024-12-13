@@ -10,6 +10,7 @@ type Config struct {
 	RelyingPartyID          string   `env:"RELYING_PARTY_ID"`
 	RelyingPartyOrigins     []string `env:"RELYING_PARTY_ORIGINS"`
 	SessionSecret           string   `env:"SESSION_SECRET"`
+	TemplatesDir            string   `env:"TEMPLATES_DIR"`
 }
 
 func CreateConfig() *Config {

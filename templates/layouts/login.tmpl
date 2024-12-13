@@ -1,13 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Login</title>
-	<link href="/static/css/styles.css" rel="stylesheet" />
-	<script src="/static/js/index.js"></script>
-</head>
-<body>
+{{ define "title" }}<title>Sovr Login</title>{{ end }}
+{{ define "scripts" }}<script src="/static/js/login.js"></script>{{ end }}
+{{ define "content" }}
+<main>
 	<div id="js_loading">
 		<h1>Loading...</h1>
 		<p>This page requires JavaScript to function since it's going to do some crypto work.</p>
@@ -33,14 +27,6 @@
 		<h1>Sorry, no UserVerifyingPlatformAuthenticator</h1>
 		<p>Your browser does not support UserVerifyingPlatformAuthenticator. This is usually something like Touch ID, Face ID, Windows Hello, a fingerprint scanner on Android, or an integrated authenticator like <a href="https://bitwarden.com/help/integrated-authenticator/">Bitwarden</a>. You'll need to configure an authenticator for this browser before you can use this page.</p>
 	</div>
-	<header>
-		<nav>
-			<a href="#">Home</a>
-			<a href="#">Documentation</a>
-		</nav>
-	</header>
-
-	<main>
 		<div id="login-container" style="display:none">
 			<h1>Login to Sovr Cloud</h1>
 			<form id="login">
@@ -75,11 +61,5 @@
 				</div>
 			</form>
 		</div>
-	</main>
-
-	<footer>
-		<p>&copy; 2024 Gleipnir. All rights reserved.</p>
-	</footer>
-
-</body>
-</html>
+</main>
+{{ end }}

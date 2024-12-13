@@ -1,13 +1,16 @@
 package main
 
 import (
+	"fmt"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
+	"html/template"
 	"log"
 	"net/http"
+	"path/filepath"
 )
 
 func main() {
@@ -31,7 +34,11 @@ func main() {
 	store := cookie.NewStore([]byte(config.SessionSecret))
 	r.Use(sessions.Sessions("session", store))
 
-	r.LoadHTMLGlob("templates/*")
+	//r.LoadHTMLGlob("templates/*")
+	templates, err := loadTemplates(config.TemplatesDir)
+	if err != nil {
+		panic(err)
+	}
 	r.Static("/static", "./static")
 	r.GET("/", func(c *gin.Context) {
 		session := sessions.Default(c)
@@ -46,12 +53,21 @@ func main() {
 			c.Redirect(http.StatusFound, "/login")
 			return
 		}
-		c.HTML(http.StatusOK, "index.tmpl", gin.H{
+		/*c.HTML(http.StatusOK, "index.tmpl", gin.H{
+			"User": user,
+		})*/
+		err = renderTemplate(c.Writer, templates, "index.tmpl", gin.H{
 			"User": user,
 		})
+		if err != nil {
+			log.Println("Failed to render template:", err)
+		}
 	})
 	r.GET("/login", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "login.tmpl", gin.H{})
+		err = renderTemplate(c.Writer, templates, "login.tmpl", gin.H{})
+		if err != nil {
+			log.Println("Failed to render template:", err)
+		}
 	})
 	r.GET("/login/begin", func(c *gin.Context) {
 		username := c.Query("username")
@@ -258,4 +274,40 @@ func main() {
 		c.Writer.WriteHeader(http.StatusNoContent)
 	})
 	_ = r.Run()
+}
+
+func loadTemplates(templatesDir string) (map[string]*template.Template, error) {
+	log.Println("Using templates dir", templatesDir)
+	result := make(map[string]*template.Template)
+	pattern := templatesDir + "/layouts/*.tmpl"
+	layouts, err := filepath.Glob(pattern)
+	log.Println("Found", len(layouts), "layouts in", pattern)
+	if err != nil {
+		log.Fatal(err)
+		return result, err
+	}
+	pattern = templatesDir + "/includes/*.tmpl"
+	includes, err := filepath.Glob(pattern)
+	log.Println("Found", len(includes), "includes in", pattern)
+	if err != nil {
+		log.Fatal(err)
+		return result, err
+	}
+
+	for _, layout := range layouts {
+		files := append(includes, layout)
+		base := filepath.Base(layout)
+		result[base] = template.Must(template.ParseFiles(files...))
+		log.Printf("Added template '%s' with files %s", base, files)
+	}
+	return result, nil
+}
+
+func renderTemplate(w http.ResponseWriter, templates map[string]*template.Template, name string, data map[string]interface{}) error {
+	tmpl, ok := templates[name]
+	if !ok {
+		return fmt.Errorf("The template %s does not exist.", name)
+	}
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	return tmpl.ExecuteTemplate(w, "base", data)
 }
