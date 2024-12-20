@@ -31,6 +31,8 @@ func main() {
 	userstore := CreateUserstore()
 
 	r := gin.Default()
+	r.ForwardedByClientIP = true
+	r.SetTrustedProxies(config.TrustedProxies)
 	store := cookie.NewStore([]byte(config.SessionSecret))
 	r.Use(sessions.Sessions("session", store))
 
