@@ -280,6 +280,14 @@ func main() {
 		c.Header("Location", "/")
 		c.Writer.WriteHeader(http.StatusNoContent)
 	})
+	r.GET("/trace", func(c *gin.Context) {
+		forwarded := c.ClientIP()
+		fmt.Println(c.Request.Host, c.Request.RemoteAddr, c.Request.RequestURI)
+		c.JSON(200, gin.H{
+			"address": forwarded,
+		})
+		return
+	})
 	_ = r.Run()
 }
 
