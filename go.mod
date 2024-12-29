@@ -1,8 +1,6 @@
 module sovr.io
 
-go 1.23
-
-toolchain go1.23.3
+go 1.23.3
 
 require (
 	github.com/gin-gonic/gin v1.10.0
