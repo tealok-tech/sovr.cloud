@@ -14,12 +14,14 @@
         "aarch64-darwin" # 64-bit ARM macOS
       ];
       forAllSystems = f: nixpkgs.lib.genAttrs allSystems (system: f {
+        inherit system;
         pkgs = import nixpkgs { inherit system; };
       });
     in
     {
-      packages = forAllSystems ({ pkgs }: {
-        default = pkgs.buildGo123Module rec {
+      packages = forAllSystems ({ pkgs, system }: {
+        default = self.packages.${system}.sovr-server;
+        sovr-server = pkgs.buildGoModule rec {
           pname = "sovr-server";
           version = "1.0.0";
           #subPackages = [ "sovr" ];
