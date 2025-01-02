@@ -22,11 +22,15 @@
       packages = forAllSystems ({ pkgs, system }: {
         default = self.packages.${system}.sovr-server;
         sovr-server = pkgs.buildGoModule rec {
+	  overrideModAttrs = (oldAttrs: {
+	    preBuild = /* bash */ ''
+	      export GOPROXY=https://goproxy.io
+	    '';
+          });
           pname = "sovr-server";
-          version = "1.0.0";
-          #subPackages = [ "sovr" ];
           src = ./.;
           vendorHash = "sha256-YOVPsS3iWg7P2awcvfRPT+cPOpJBfw6T2IzIJTseq+k=";
+          version = "1.0.0";
         };
       });
     };
