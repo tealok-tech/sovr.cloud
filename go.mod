@@ -1,4 +1,4 @@
-module sovr.io
+module sovr.cloud
 
 go 1.23.3
 

@@ -1,10 +1,10 @@
-# sovr.io
+# sovr.cloud
 
-This is the whole system for sovr.io, which includes various tools for self-hosters.
+This is the whole system for sovr.cloud, which includes various tools for self-hosters.
 
 ## Nix
 
-`nix build` should work and produce output at `result/bin/sovr.io`
+`nix build` should work and produce output at `result/bin/sovr.cloud`
 
 ## Build
 
