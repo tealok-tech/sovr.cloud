@@ -19,6 +19,17 @@
       });
     in
     {
+      nixosModules.default = { config, pkgs, lib, ... }: {
+        options = {
+	  services.sovr-server.enable = lib.mkEnableOption "sovr-server";
+	};
+
+	config = lib.mkIf config.services.sovr-server.enable {
+	  systemd.services.sovr-server = {
+	    serviceConfig.ExecStart = "${self.packages.${pkgs.system}.default}/bin/main";
+	  };
+	};
+      };
       packages = forAllSystems ({ pkgs, system }: {
         default = self.packages.${system}.sovr-server;
         sovr-server = pkgs.buildGoModule rec {
